@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+
+    <title>Hijri Date Picker</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Hijri Date Picker CSS -->
+    <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+
+    <!-- Global Context Library -->
+    <script type="text/javascript" src="../ClientGlobalContext.js.aspx"></script>
+
+
+    <!-- jQuery -->
+    <script src="js/jquery.min.js"></script>
+
+    <!-- Moment.js -->
+    <script src="js/moment.min.js"></script>
+
+    <!-- Hijri Date Picker JS -->
+    <script src="js/bootstrap-hijri-datetimepickermin.js"></script>
+
+    <script type="text/javascript">
+
+        //Globally setting the XRM
+        var Xrm = window.parent.Xrm;
+        var crmHijriDateFieldName = "new_hijiridateField" //update the field name with the hijri date
+        $(function () {
+            initDefault();
+            debugger;
+ 
+            var hijriDateValue = Xrm.Page.getAttribute(crmHijriDateFieldName).getValue();
+            // Check if the field value is not null or empty
+            if (hijriDateValue && hijriDateValue.trim() !== "") {
+                $('#hijri-picker').val(hijriDateValue); // Set the text value of the input
+                $('#hijri-picker').hijriDatePicker('setValue', hijriDateValue); // Set the value in the Hijri date picker
+            }
+
+        });
+
+        function initDefault() {
+            $("#hijri-picker").hijriDatePicker({
+                hijri: true,
+                showSwitcher: false,
+                defaultDate: null, // Ensure input is empty on load
+                useCurrent: false // Prevent default to current date
+            });
+
+            $("#hijri-picker").on("dp.change", function (e) {
+                updateCrmField();
+            });
+        }
+
+
+        // Function to update the CRM field when the input changes
+        // Function to update the CRM field when the input changes
+        function updateCrmField() {
+            try {
+                debugger;
+                var Xrm = window.parent.Xrm;
+                if (Xrm && Xrm.Page) {
+                    var newHijriDateValue = document.getElementById('hijri-picker').value; // Get the new value from the input
+                    Xrm.Page.getAttribute(crmHijriDateFieldName).setValue(newHijriDateValue); // Update the CRM field with the new value
+                    newGeorgianDateValue = convertHijriToGregorian(newHijriDateValue);
+                    if (newGeorgianDateValue != null) {
+                        // Set the Gregorian date to the CRM date field
+                        setCrmDateField(newGeorgianDateValue,"stcs_crnumberexpirydate")
+                    }
+                    Xrm.Page.data.entity.save(); // Optional: Save the form automatically if needed
+                }
+            } catch (e) {
+                console.error("Error setting field value: " + e.message);
+            }
+        }
+
+// Function to set a CRM date field with a JavaScript Date object
+function setCrmDateField(dateObj, crmFieldName) {
+    try {
+        var Xrm = window.parent.Xrm;
+        if (Xrm && Xrm.Page && dateObj instanceof Date && !isNaN(dateObj)) {
+            // Directly set the JavaScript Date object to the CRM date field
+            Xrm.Page.getAttribute(crmFieldName).setValue(dateObj);
+
+            console.log(`Date set successfully for ${crmFieldName}: ${dateObj}`);
+        } else {
+            console.error("Invalid date object or Xrm context not available.");
+        }
+    } catch (e) {
+        console.error("Error setting CRM date field: " + e.message);
+    }
+}
+
+
+        // Function to convert Hijri date to Gregorian date
+        function convertHijriToGregorian(hijriDate) {
+            // Convert Hijri date string (yyyy-mm-dd) to Gregorian using moment-hijri
+            var gregorianDate = moment(hijriDate, 'iYYYY-iMM-iDD').format('YYYY-MM-DD');
+            return gregorianDate ? new Date(gregorianDate) : null; // Return as Date object
+        }
+
+    </script>
+
+    <style>
+        .container-small {
+            max-width: 345px;
+            /* Adjust the width as needed */
+            padding: 15px;
+            background-color: #f8f9fa;
+            /* Light background */
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            height: 350px;
+            /* Ensure the container height fits within the iframe */
+        }
+    </style>
+
+</head>
+
+<body class="bg-light">
+
+    <div class="container-small">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="hijri-picker">Select Hijri Date:</label>
+                    <input id="hijri-picker" type="text" class="form-control" placeholder="Select Hijri Date" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
